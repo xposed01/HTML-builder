@@ -15,15 +15,16 @@ const output = fs.createWriteStream(pathToFile);
 
 // CSS compile
 fs.readdir(stylesFolder, (err, files) => {
-  let data = '';
+  if (err) throw err;
   for (let file of files) {
+    let data = '';
     const folderFile = path.join(__dirname, 'styles', file);
     const stream = fs.createReadStream(folderFile, 'utf-8');
 
     fs.stat(folderFile, (err, stats) => {
       if (err) throw err;
       if (stats.isFile() && path.extname(file) === '.css') {
-        stream.on('data', chunk => data += chunk);
+        stream.on('data', chunk => data += `${chunk}\n`);
         stream.on('end', () => output.write(data));
         stream.on('error', error => console.log('Error', error.message));
       }
@@ -70,45 +71,34 @@ copyDir('assets');
 
 const pathToNewHTML = path.join(projectFolder, 'index.html');
 const pathToTemplateHTML = path.join(__dirname, 'template.html');
+const pathToComponents = path.join(__dirname, 'components');
 
 // copy html
-/* fs.copyFile(pathToTemplateHTML, pathToNewHTML, (err) => {
-  if (err) throw err;
-}); */
-
-fs.writeFile(pathToNewHTML, pathToTemplateHTML, (err, log) => {
+fs.writeFile(pathToNewHTML, pathToTemplateHTML, (err) => {
   if (err) throw err;
 });
 
 // read html-template
 const streamHTML = fs.createReadStream(pathToTemplateHTML, 'utf-8');
 
-// read components
-/* const streamComponent = fs.createReadStream(path.join(__dirname, 'components', 'header.html'), 'utf-8');
-const streamCompArticles = fs.createReadStream(path.join(__dirname, 'components', 'articles.html'), 'utf-8');
-const streamCompFooter = fs.createReadStream(path.join(__dirname, 'components', 'footer.html'), 'utf-8'); */
-
-const arrComponents = ['header', 'articles', 'footer'];
-
+// read components and build page
 let dataHTML = '';
 streamHTML.on('data', chunk => { dataHTML += chunk; });
 
-for (let i = 0; i < arrComponents.length; i++) {
-  let dataComponents = '';
-  let streamComponent = fs.createReadStream(path.join(__dirname, 'components', `${arrComponents[i]}.html`), 'utf-8');
-  streamComponent.on('data', chunk => { dataComponents += chunk; });
-  streamHTML.on('end', () => { 
-    dataHTML = dataHTML.replace(`{{${arrComponents[i]}}}`, dataComponents);
-    fs.writeFile(pathToNewHTML, dataHTML, (err) => {
-      if (err) throw err;
+fs.readdir(pathToComponents, (err, files) => {
+  if (err) throw err;
+  for (let file of files) {
+    let fileName = path.basename(file, '.html');
+    let dataComponents = '';
+    let streamComponent = fs.createReadStream(path.join(__dirname, 'components', `${fileName}.html`), 'utf-8');
+    streamComponent.on('data', chunk => { dataComponents += chunk; });
+    streamHTML.on('end', () => { 
+      dataHTML = dataHTML.replace(`{{${fileName}}}`, dataComponents);
+      fs.writeFile(pathToNewHTML, dataHTML, (err) => {
+        if (err) throw err;
+      });
     });
-  });
-}
-
-
-
-
-
-
+  }
+});
 
 streamHTML.on('error', error => console.log('Error', error.message));
