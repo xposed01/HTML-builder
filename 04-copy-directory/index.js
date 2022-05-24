@@ -1,5 +1,4 @@
-
-async function copyDir() {
+function copyDir() {
   
   const fs = require('fs');
   const path = require('path');
@@ -38,5 +37,4 @@ async function copyDir() {
 
 }
   
-
 copyDir();
