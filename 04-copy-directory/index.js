@@ -3,23 +3,20 @@ async function copyDir() {
   
   const fs = require('fs');
   const path = require('path');
-  const fsPromises = require('fs').promises; //////////////////
   const newFolderPath = path.join(__dirname, 'files-copy');
   const copyFolderPath = path.join(__dirname, 'files');
 
  
   fs.access(newFolderPath, error => {
     if (!error) {
-      fs.promises.rm(newFolderPath, {recursive: true,force: true,}, (err) => {
+      fs.rm(newFolderPath, {recursive: true,force: true,}, (err) => {
         if (err) throw err;
+        generatorDir();
       }); 
-      console.log('New folder deleted')
     } else {
       generatorDir();
     }
   });
-
-   
 
   function generatorDir() {
     fs.mkdir(newFolderPath, {recursive: true}, (err) => {
@@ -41,6 +38,5 @@ async function copyDir() {
 
 }
   
-
 
 copyDir();
