@@ -1,27 +1,46 @@
 
-function copyDir() {
+async function copyDir() {
   
   const fs = require('fs');
   const path = require('path');
+  const fsPromises = require('fs').promises; //////////////////
   const newFolderPath = path.join(__dirname, 'files-copy');
   const copyFolderPath = path.join(__dirname, 'files');
 
-  fs.mkdir(newFolderPath, {recursive: true}, (err) => {
-    if (err) throw err;
+ 
+  fs.access(newFolderPath, error => {
+    if (!error) {
+      fs.promises.rm(newFolderPath, {recursive: true,force: true,}, (err) => {
+        if (err) throw err;
+      }); 
+      console.log('New folder deleted')
+    } else {
+      generatorDir();
+    }
   });
 
-  fs.readdir(copyFolderPath, (err, files) => {
-    for (let file of files) {
+   
+
+  function generatorDir() {
+    fs.mkdir(newFolderPath, {recursive: true}, (err) => {
       if (err) throw err;
-      let folderFile = path.join(__dirname, 'files', file);
-      let newFolderPathFiles = path.join(__dirname, 'files-copy', file);
-      fs.copyFile(folderFile, newFolderPathFiles, (err) => {
+    });
+
+    fs.readdir(copyFolderPath, (err, files) => {
+      for (let file of files) {
         if (err) throw err;
-      });
-    }
-    console.log('Files have been copied to a new folder');
-  });
+        let folderFile = path.join(__dirname, 'files', file);
+        let newFolderPathFiles = path.join(__dirname, 'files-copy', file);
+        fs.copyFile(folderFile, newFolderPathFiles, (err) => {
+          if (err) throw err;
+        });
+      }
+      console.log('Files copied to new folder');
+    });
+  }
 
 }
+  
+
 
 copyDir();
